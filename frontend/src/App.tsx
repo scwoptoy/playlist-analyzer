@@ -1,71 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Login from './components/Login';
+import Callback from './components/Callback';
+import Dashboard from './pages/Dashboard';
 import './App.css';
 
-interface BackendTest {
-  message: string;
-  frontend_can_reach_backend: boolean;
-  ready_for_spotify_integration: boolean;
-}
+// Protected Route component - only shows content if user is authenticated
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-function App() {
-  const [backendStatus, setBackendStatus] = useState<string>('Testing...');
-  const [backendData, setBackendData] = useState<BackendTest | null>(null);
-
-  useEffect(() => {
-    // Test backend connection
-    fetch('http://localhost:8000/api/test')
-      .then(response => response.json())
-      .then((data: BackendTest) => {
-        setBackendData(data);
-        setBackendStatus('✅ Connected');
-      })
-      .catch(error => {
-        console.error('Backend connection failed:', error);
-        setBackendStatus('❌ Failed');
-      });
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-spotify-black to-gray-900 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-spotify-green mb-4">
-          🎵 Playlist Analyzer
-        </h1>
-        <p className="text-white text-xl mb-8">
-          Discover the psychology behind your music taste
-        </p>
-        <div className="bg-white rounded-lg p-6 shadow-lg max-w-md mx-auto">
-          <h2 className="text-2xl font-semibold text-spotify-black mb-4">
-            Setup Test Status
-          </h2>
-          <div className="space-y-2 text-left">
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span>React & TypeScript: Working</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span>Tailwind CSS: Working</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              <span>Custom Spotify Colors: Working</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2">{backendStatus.includes('✅') ? '✅' : '⏳'}</span>
-              <span>Backend Connection: {backendStatus}</span>
-            </div>
-          </div>
-          
-          {backendData && (
-            <div className="mt-4 p-3 bg-green-50 rounded border">
-              <p className="text-sm text-green-800 font-semibold">Backend Response:</p>
-              <p className="text-xs text-green-600">{backendData.message}</p>
-            </div>
-          )}
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-spotify-black to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spotify-green mx-auto mb-4"></div>
+          <p className="text-white">Loading...</p>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Show protected content if authenticated
+  return <>{children}</>;
+};
+
+// Main App Router component (needs to be inside AuthProvider)
+const AppRouter: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Router>
+      <Routes>
+        {/* Login route - redirect to dashboard if already authenticated */}
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
+        />
+        
+        {/* OAuth callback route */}
+        <Route path="/callback" element={<Callback />} />
+        
+        {/* Protected dashboard route */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Default route - redirect based on auth status */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          } 
+        />
+        
+        {/* Catch-all route for 404s */}
+        <Route 
+          path="*" 
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-spotify-black to-gray-900 flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-white mb-4">404 - Page Not Found</h1>
+                <p className="text-gray-400 mb-8">The page you're looking for doesn't exist.</p>
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="bg-spotify-green text-black px-6 py-2 rounded-lg font-semibold hover:bg-green-400 transition"
+                >
+                  Go Home
+                </button>
+              </div>
+            </div>
+          } 
+        />
+      </Routes>
+    </Router>
+  );
+};
+
+// Main App component - wraps everything with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
 

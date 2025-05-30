@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface BackendTest {
   message: string;
@@ -9,6 +10,7 @@ interface BackendTest {
 
 const Dashboard: React.FC = () => {
   const { user, logout, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [backendStatus, setBackendStatus] = useState<string>('Testing...');
   const [backendData, setBackendData] = useState<BackendTest | null>(null);
 
@@ -28,6 +30,10 @@ const Dashboard: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleViewPlaylists = () => {
+    navigate('/playlists');
   };
 
   if (isLoading) {
@@ -77,9 +83,17 @@ const Dashboard: React.FC = () => {
           <h2 className="text-4xl font-bold text-white mb-4">
             Welcome back, {user?.display_name}! 🎉
           </h2>
-          <p className="text-gray-300 text-xl">
+          <p className="text-gray-300 text-xl mb-8">
             You're successfully connected to Spotify. Let's analyze your music taste!
           </p>
+          
+          {/* NEW: Main Action Button */}
+          <button
+            onClick={handleViewPlaylists}
+            className="bg-spotify-green hover:bg-green-400 text-black px-8 py-4 rounded-lg text-xl font-bold transition transform hover:scale-105 shadow-lg"
+          >
+            🎵 View My Playlists
+          </button>
         </div>
 
         {/* Status cards */}
@@ -158,23 +172,39 @@ const Dashboard: React.FC = () => {
           <h3 className="text-2xl font-bold text-white mb-4">🚀 What's Next?</h3>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-spotify-green">Coming Soon:</h4>
+              <h4 className="text-lg font-semibold text-spotify-green">Available Now:</h4>
               <ul className="space-y-2 text-gray-300">
-                <li>• Fetch your Spotify playlists</li>
-                <li>• Analyze playlist audio features</li>
-                <li>• Generate taste insights</li>
-                <li>• Personalized recommendations</li>
+                <li>✅ View your Spotify playlists</li>
+                <li>✅ Browse playlist details</li>
+                <li>✅ Open playlists in Spotify</li>
+                <li>⏳ Playlist analysis (coming soon)</li>
               </ul>
             </div>
             <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-spotify-green">Current Status:</h4>
+              <h4 className="text-lg font-semibold text-spotify-green">Coming Soon:</h4>
               <ul className="space-y-2 text-gray-300">
-                <li>✅ Authentication system working</li>
-                <li>✅ Backend API connected</li>
-                <li>✅ User profile loaded</li>
-                <li>⏳ Playlist analysis (next milestone)</li>
+                <li>• Analyze playlist audio features</li>
+                <li>• Generate taste insights</li>
+                <li>• Personalized recommendations</li>
+                <li>• Playlist comparisons</li>
               </ul>
             </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="mt-6 flex space-x-4">
+            <button
+              onClick={handleViewPlaylists}
+              className="bg-spotify-green hover:bg-green-400 text-black px-6 py-3 rounded-lg font-semibold transition"
+            >
+              View My Playlists
+            </button>
+            <button
+              onClick={() => alert('Analysis feature coming soon!')}
+              className="bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold transition"
+            >
+              Start Analysis (Coming Soon)
+            </button>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Callback from './components/Callback';
 import Dashboard from './pages/Dashboard';
+import { Playlists } from './pages/Playlists';
 import './App.css';
 
 // Protected Route component - only shows content if user is authenticated
@@ -53,6 +54,16 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* NEW: Protected playlists route */}
+        <Route 
+          path="/playlists" 
+          element={
+            <ProtectedRoute>
+              <Playlists />
             </ProtectedRoute>
           } 
         />
